@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchLatestReadings } from '@/lib/api';
+import { fetchLatestReadings, sendCommand } from '@/lib/api';
 import {
 	type Reading,
 	PROPERTY_UNITS,
@@ -13,57 +13,13 @@ import {
 } from '@/lib/types';
 import { AnimatedCounter } from './AnimatedCounter';
 import CameraStream from './CameraStream';
-
-// const galleryImages = [
-// 	{
-// 		id: 'img1',
-// 		src: '/placeholder.svg?height=500&width=800&text=Satellite+Image+1',
-// 		alt: 'Satellite imagery of Earth',
-// 		title: 'Earth Observation',
-// 		description:
-// 			"High-resolution imagery captured by our satellite's primary camera system",
-// 	},
-// 	{
-// 		id: 'img2',
-// 		src: '/placeholder.svg?height=500&width=800&text=Wildfire+Detection',
-// 		alt: 'Wildfire detection imagery',
-// 		title: 'Wildfire Detection',
-// 		description:
-// 			'Thermal imaging used to detect and monitor active wildfires across forest regions',
-// 	},
-// 	{
-// 		id: 'img3',
-// 		src: '/placeholder.svg?height=500&width=800&text=Hurricane+Tracking',
-// 		alt: 'Hurricane tracking visualization',
-// 		title: 'Hurricane Tracking',
-// 		description:
-// 			'Advanced meteorological data visualization for hurricane prediction and tracking',
-// 	},
-// 	{
-// 		id: 'img4',
-// 		src: '/placeholder.svg?height=500&width=800&text=Flood+Monitoring',
-// 		alt: 'Flood monitoring system',
-// 		title: 'Flood Monitoring',
-// 		description:
-// 			'Water level analysis for early detection of potential flooding events',
-// 	},
-// 	{
-// 		id: 'img5',
-// 		src: '/placeholder.svg?height=500&width=800&text=Satellite+Systems',
-// 		alt: 'Satellite systems overview',
-// 		title: 'Satellite Systems',
-// 		description:
-// 			"Overview of our satellite's advanced monitoring and detection systems",
-// 	},
-// ];
+import { SatelliteControls } from './SatelliteControls';
 
 export function ImageGallery() {
-	// const [currentIndex, setCurrentIndex] = useState(0);
 	const [readings, setReadings] = useState<Record<string, Reading>>({});
 	const [isLoading, setIsLoading] = useState(true);
 	const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-
-	// const currentImage = galleryImages[currentIndex];
+	const [isMoving, setIsMoving] = useState(false);
 
 	const fetchReadings = async () => {
 		setIsLoading(true);
@@ -86,22 +42,6 @@ export function ImageGallery() {
 		return () => clearInterval(intervalId);
 	}, []);
 
-	// const goToNext = () => {
-	// 	setCurrentIndex((prevIndex) =>
-	// 		prevIndex === galleryImages.length - 1 ? 0 : prevIndex + 1
-	// 	);
-	// };
-
-	// const goToPrevious = () => {
-	// 	setCurrentIndex((prevIndex) =>
-	// 		prevIndex === 0 ? galleryImages.length - 1 : prevIndex - 1
-	// 	);
-	// };
-
-	// const goToSlide = (index: number) => {
-	// 	setCurrentIndex(index);
-	// };
-
 	const formatLastUpdated = () => {
 		return lastUpdated.toLocaleTimeString();
 	};
@@ -116,18 +56,88 @@ export function ImageGallery() {
 		return 1;
 	};
 
+	// Handle satellite movement
+	const handleMove = (direction: 'up' | 'down' | 'left' | 'right') => {
+		setIsMoving(true);
+
+		const command =
+			direction === 'up'
+				? 1
+				: direction === 'down'
+				? 3
+				: direction === 'left'
+				? 4
+				: 2;
+
+		sendCommand(command);
+
+		// Update lat/long based on direction
+		const latChange =
+			direction === 'up' ? 0.01 : direction === 'down' ? -0.01 : 0;
+		const longChange =
+			direction === 'right' ? 0.01 : direction === 'left' ? -0.01 : 0;
+
+		// Create updated readings
+		const updatedReadings = { ...readings };
+
+		if (updatedReadings.lat) {
+			updatedReadings.lat = {
+				...updatedReadings.lat,
+				Value: updatedReadings.lat.Value + latChange,
+			};
+		}
+
+		if (updatedReadings.long) {
+			updatedReadings.long = {
+				...updatedReadings.long,
+				Value: updatedReadings.long.Value + longChange,
+			};
+		}
+
+		// Update readings
+		setReadings(updatedReadings);
+		setLastUpdated(new Date());
+
+		// Reset moving state after a delay
+		setTimeout(() => {
+			setIsMoving(false);
+		}, 500);
+	};
+
+	// Handle satellite rotation
+	const handleRotate = (direction: 'clockwise' | 'counterclockwise') => {
+		// In a real application, this would send commands to rotate the satellite
+		console.log(`Rotating satellite ${direction}`);
+	};
+
+	// Handle centering the satellite
+	const handleCenter = () => {
+		// Reset to default position
+		const updatedReadings = { ...readings };
+
+		if (updatedReadings.lat) {
+			updatedReadings.lat = {
+				...updatedReadings.lat,
+				Value: 0,
+			};
+		}
+
+		if (updatedReadings.long) {
+			updatedReadings.long = {
+				...updatedReadings.long,
+				Value: 0,
+			};
+		}
+
+		// Update readings
+		setReadings(updatedReadings);
+		setLastUpdated(new Date());
+	};
+
 	return (
 		<div className='max-w-5xl mx-auto'>
 			<Card className='relative overflow-hidden rounded-xl shadow-lg bg-white pt-0'>
 				<div className='relative'>
-					{/* <Image
-							src={currentImage.src || '/placeholder.svg'}
-							alt={currentImage.alt}
-							className='h-full w-full object-cover'
-							width={800}
-							height={500}
-						/>
-                         */}
 					<CameraStream />
 
 					<div className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6 text-white'>
@@ -139,40 +149,6 @@ export function ImageGallery() {
 							primary camera system
 						</p>
 					</div>
-					{/* 
-					<Button
-						variant='outline'
-						size='icon'
-						className='absolute left-4 top-1/2 z-20 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 hover:bg-white shadow-md border-none'
-						onClick={goToPrevious}
-						aria-label='Previous slide'
-					>
-						<ChevronLeft className='h-6 w-6' />
-					</Button>
-					<Button
-						variant='outline'
-						size='icon'
-						className='absolute right-4 top-1/2 z-20 -translate-y-1/2 h-10 w-10 rounded-full bg-white/80 hover:bg-white shadow-md border-none'
-						onClick={goToNext}
-						aria-label='Next slide'
-					>
-						<ChevronRight className='h-6 w-6' />
-					</Button> */}
-
-					{/* <div className='absolute bottom-20 left-0 right-0 z-20 flex justify-center space-x-2'>
-						{galleryImages.map((_, index) => (
-							<button
-								key={index}
-								className={`h-2 w-8 rounded-full transition-all ${
-									index === currentIndex
-										? 'bg-white'
-										: 'bg-white/50 hover:bg-white/70'
-								}`}
-								onClick={() => goToSlide(index)}
-								aria-label={`Go to slide ${index + 1}`}
-							/>
-						))}
-					</div> */}
 				</div>
 
 				<div className='p-6 border-t border-gray-100'>
@@ -187,7 +163,7 @@ export function ImageGallery() {
 							<Button
 								variant='outline'
 								size='sm'
-								className='flex items-center space-x-1'
+								className='flex items-center space-x-1 cursor-pointer'
 								onClick={fetchReadings}
 								disabled={isLoading}
 							>
@@ -241,6 +217,23 @@ export function ImageGallery() {
 							bgColor={PROPERTY_COLORS['long'].bg}
 							precision={getPrecision('long')}
 						/>
+					</div>
+				</div>
+
+				{/* Satellite Controls Section */}
+				<div className='p-6 border-t border-gray-100'>
+					<h3 className='text-lg font-semibold text-gray-800 mb-4'>
+						Satellite Controls
+					</h3>
+					<div className='flex justify-center'>
+						<div className='max-w-md w-full'>
+							<SatelliteControls
+								onMove={handleMove}
+								onRotate={handleRotate}
+								onCenter={handleCenter}
+								isMoving={isMoving}
+							/>
+						</div>
 					</div>
 				</div>
 			</Card>

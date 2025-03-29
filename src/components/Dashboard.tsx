@@ -8,7 +8,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { EventsFeed } from './EventFeed';
 import { PowerStatus } from './PowerStatus';
-import { SatelliteControls } from './SatelliteControls';
 import { SatelliteMap } from './SatelliteMap';
 
 export default function Dashboard() {
@@ -131,14 +130,6 @@ export default function Dashboard() {
 						}
 						powerConsumption={
 							satelliteData?.power.powerConsumption || 0
-						}
-					/>
-					<SatelliteControls
-						sunAxisRotation={
-							satelliteData?.orientation.sunAxisRotation || 0
-						}
-						earthAxisRotation={
-							satelliteData?.orientation.earthAxisRotation || 0
 						}
 					/>
 				</div>

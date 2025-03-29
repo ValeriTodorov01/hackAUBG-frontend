@@ -193,6 +193,16 @@ export async function fetchLatestReadings(): Promise<Record<string, Reading>> {
 	}
 }
 
+export const sendCommand = async (dir: number) => {
+	try {
+		const response = await fetch(`http://192.168.1.100?dir=${dir}`);
+		const text = await response.text();
+		console.log('ESP32 Response:', text);
+	} catch (error) {
+		console.error('Error sending request:', error);
+	}
+};
+
 function getMockReadings(): Record<string, Reading> {
 	const now = new Date().toISOString();
 

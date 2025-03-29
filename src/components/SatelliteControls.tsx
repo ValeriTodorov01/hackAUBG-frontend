@@ -2,130 +2,164 @@
 
 import { useState } from 'react';
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
+	ArrowUp,
+	ArrowLeft,
+	Crosshair,
+	ArrowRight,
+	ArrowDown,
+	RotateCcw,
+	RotateCw,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RotateCw, Sun, Globe } from 'lucide-react';
-import { sendSatelliteCommand } from '@/lib/api';
-import { toast } from 'sonner';
 
 interface SatelliteControlsProps {
-	sunAxisRotation: number;
-	earthAxisRotation: number;
+	onMove: (direction: 'up' | 'down' | 'left' | 'right') => void;
+	onRotate: (direction: 'clockwise' | 'counterclockwise') => void;
+	isMoving: boolean;
+	onCenter: () => void;
 }
 
 export function SatelliteControls({
-	sunAxisRotation,
-	earthAxisRotation,
+	onMove,
+	onRotate,
+	onCenter,
+	isMoving,
 }: SatelliteControlsProps) {
-	const [sunAxis, setSunAxis] = useState(sunAxisRotation);
-	const [earthAxis, setEarthAxis] = useState(earthAxisRotation);
-	const [isAdjusting, setIsAdjusting] = useState(false);
+	const [activeButton, setActiveButton] = useState<string | null>(null);
 
-	const handleApplyChanges = async () => {
-		setIsAdjusting(true);
-		try {
-			await sendSatelliteCommand({
-				type: 'adjust_orientation',
-				params: {
-					sunAxisRotation: sunAxis,
-					earthAxisRotation: earthAxis,
-				},
-			});
+	const handleButtonPress = (action: string, callback: () => void) => {
+		setActiveButton(action);
+		callback();
 
-			toast.success('Orientation Updated', {
-				description:
-					'Satellite orientation commands sent successfully.',
-			});
-		} catch (error) {
-			toast.warning('Command Failed', {
-				description:
-					'Failed to send orientation commands to satellite.',
-			});
-			console.error(error);
-		} finally {
-			setIsAdjusting(false);
-		}
+		// Add a small delay before resetting the active state for visual feedback
+		setTimeout(() => {
+			setActiveButton(null);
+		}, 300);
 	};
 
 	return (
-		<Card className='bg-white border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-300'>
-			<CardHeader className='pb-2'>
-				<CardTitle className='flex items-center text-gray-900 text-xl'>
-					<div className='bg-purple-50 p-2 rounded-full mr-3'>
-						<RotateCw className='h-5 w-5 text-purple-600' />
-					</div>
-					Satellite Orientation
-				</CardTitle>
-				<CardDescription>
-					Adjust the satellite rotation axes
-				</CardDescription>
-			</CardHeader>
-			<CardContent className='space-y-6 pt-4'>
-				<div className='space-y-4'>
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center'>
-							<div className='bg-yellow-50 p-1.5 rounded-full mr-2'>
-								<Sun className='h-4 w-4 text-yellow-500' />
-							</div>
-							<span className='font-medium'>Sun Axis</span>
-						</div>
-						<span className='text-sm font-mono bg-gray-100 px-2 py-1 rounded-md'>
-							{sunAxis.toFixed(1)}°
-						</span>
-					</div>
-					<Slider
-						value={[sunAxis]}
-						min={0}
-						max={360}
-						step={0.1}
-						onValueChange={(value) => setSunAxis(value[0])}
-						className='cursor-pointer'
-					/>
-				</div>
-
-				<div className='space-y-4'>
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center'>
-							<div className='bg-blue-50 p-1.5 rounded-full mr-2'>
-								<Globe className='h-4 w-4 text-blue-500' />
-							</div>
-							<span className='font-medium'>Earth Axis</span>
-						</div>
-						<span className='text-sm font-mono bg-gray-100 px-2 py-1 rounded-md'>
-							{earthAxis.toFixed(1)}°
-						</span>
-					</div>
-					<Slider
-						value={[earthAxis]}
-						min={0}
-						max={360}
-						step={0.1}
-						onValueChange={(value) => setEarthAxis(value[0])}
-						className='cursor-pointer'
-					/>
-				</div>
-
+		<div className='flex flex-col items-center'>
+			{/* Directional Controls */}
+			<div className='grid grid-cols-3 gap-3 mb-5'>
+				{/* Top row */}
+				<div></div>
 				<Button
-					onClick={handleApplyChanges}
-					disabled={isAdjusting}
-					className='w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300'
+					variant='outline'
+					size='icon'
+					className={`h-16 w-16 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'up'
+							? 'bg-blue-100 border-blue-500 text-blue-600'
+							: 'hover:bg-blue-50 hover:text-blue-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() => handleButtonPress('up', () => onMove('up'))}
 				>
-					{isAdjusting ? (
-						<>
-							<span className='animate-pulse mr-2'>●</span>
-							Sending Commands...
-						</>
-					) : (
-						'Apply Changes'
-					)}
+					<ArrowUp className='h-7 w-7' />
 				</Button>
-			</CardContent>
-		</Card>
+				<div></div>
+
+				{/* Middle row */}
+				<Button
+					variant='outline'
+					size='icon'
+					className={`h-16 w-16 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'left'
+							? 'bg-blue-100 border-blue-500 text-blue-600'
+							: 'hover:bg-blue-50 hover:text-blue-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() =>
+						handleButtonPress('left', () => onMove('left'))
+					}
+				>
+					<ArrowLeft className='h-7 w-7' />
+				</Button>
+				<Button
+					variant='outline'
+					size='icon'
+					className={`h-16 w-16 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'center'
+							? 'bg-blue-100 border-blue-500 text-blue-600'
+							: 'hover:bg-blue-50 hover:text-blue-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() => handleButtonPress('center', onCenter)}
+				>
+					<Crosshair className='h-7 w-7' />
+				</Button>
+				<Button
+					variant='outline'
+					size='icon'
+					className={`h-16 w-16 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'right'
+							? 'bg-blue-100 border-blue-500 text-blue-600'
+							: 'hover:bg-blue-50 hover:text-blue-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() =>
+						handleButtonPress('right', () => onMove('right'))
+					}
+				>
+					<ArrowRight className='h-7 w-7' />
+				</Button>
+
+				{/* Bottom row */}
+				<div></div>
+				<Button
+					variant='outline'
+					size='icon'
+					className={`h-16 w-16 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'down'
+							? 'bg-blue-100 border-blue-500 text-blue-600'
+							: 'hover:bg-blue-50 hover:text-blue-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() =>
+						handleButtonPress('down', () => onMove('down'))
+					}
+				>
+					<ArrowDown className='h-7 w-7' />
+				</Button>
+				<div></div>
+			</div>
+
+			{/* Rotation Controls */}
+			<div className='flex justify-center space-x-6'>
+				<Button
+					variant='outline'
+					className={`h-12 px-4 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'rotate-ccw'
+							? 'bg-purple-100 border-purple-500 text-purple-600'
+							: 'hover:bg-purple-50 hover:text-purple-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() =>
+						handleButtonPress('rotate-ccw', () =>
+							onRotate('counterclockwise')
+						)
+					}
+				>
+					<RotateCcw className='h-5 w-5 mr-2' />
+					Rotate CCW
+				</Button>
+				<Button
+					variant='outline'
+					className={`h-12 px-4 rounded-xl border-2 cursor-pointer ${
+						activeButton === 'rotate-cw'
+							? 'bg-purple-100 border-purple-500 text-purple-600'
+							: 'hover:bg-purple-50 hover:text-purple-600'
+					} transition-all duration-200`}
+					disabled={isMoving}
+					onClick={() =>
+						handleButtonPress('rotate-cw', () =>
+							onRotate('clockwise')
+						)
+					}
+				>
+					<RotateCw className='h-5 w-5 mr-2' />
+					Rotate CW
+				</Button>
+			</div>
+		</div>
 	);
 }
