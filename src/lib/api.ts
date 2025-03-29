@@ -1,3 +1,4 @@
+import { type Reading, PROPERTY_MAP } from '@/lib/types';
 import { SatelliteData, SatelliteCommand } from './types';
 
 const mockSatelliteData: SatelliteData = {
@@ -143,4 +144,82 @@ export async function sendSatelliteCommand(
 	}
 
 	return { success: true };
+}
+
+const API_ENDPOINT =
+	'http://localhost:8080/services/ts/nst-one/gen/edm/api/entities/ReadingService.ts';
+
+/**
+ * Fetches the latest readings from the API
+ * @returns Promise with the latest readings for each property
+ */
+export async function fetchLatestReadings(): Promise<Record<string, Reading>> {
+	try {
+		const response = await fetch(API_ENDPOINT, {
+			headers: {
+				Authorization: 'Basic ' + btoa('admin:admin'),
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error(
+				`API request failed with status ${response.status}`
+			);
+		}
+		const data: Reading[] = await response.json();
+
+		const latestReadings: Record<string, Reading> = {};
+
+		const sortedData = [...data].sort((a, b) => b.Id - a.Id);
+
+		sortedData.forEach((reading) => {
+			const propertyName = PROPERTY_MAP[reading.Property];
+
+			if (!propertyName) return;
+
+			if (
+				!latestReadings[propertyName] ||
+				new Date(reading.Timestamp) >
+					new Date(latestReadings[propertyName].Timestamp)
+			) {
+				latestReadings[propertyName] = reading;
+			}
+		});
+
+		return latestReadings;
+	} catch (error) {
+		console.error('Error fetching readings:', error);
+		return getMockReadings();
+	}
+}
+
+function getMockReadings(): Record<string, Reading> {
+	const now = new Date().toISOString();
+
+	return {
+		temperature: {
+			Id: 1,
+			Property: 1,
+			Value: 22 + Math.random() * 8,
+			Timestamp: now,
+		},
+		humidity: {
+			Id: 2,
+			Property: 2,
+			Value: 45 + Math.random() * 30,
+			Timestamp: now,
+		},
+		lat: {
+			Id: 3,
+			Property: 3,
+			Value: 37.7749 + (Math.random() - 0.5) * 2,
+			Timestamp: now,
+		},
+		long: {
+			Id: 4,
+			Property: 4,
+			Value: -122.4194 + (Math.random() - 0.5) * 2,
+			Timestamp: now,
+		},
+	};
 }
