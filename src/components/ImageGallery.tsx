@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchLatestReadings, sendCommand } from '@/lib/api';
+import { fetchLatestReadings, sendArmCommand, sendCommand } from '@/lib/api';
 import {
 	type Reading,
 	PROPERTY_UNITS,
@@ -105,34 +105,17 @@ export function ImageGallery() {
 		}, 500);
 	};
 
-	// Handle satellite rotation
-	const handleRotate = (direction: 'clockwise' | 'counterclockwise') => {
-		// In a real application, this would send commands to rotate the satellite
-		console.log(`Rotating satellite ${direction}`);
-	};
+	const handleRotate = (
+		direction: 'clockwise' | 'counterclockwise' | 'center'
+	) => {
+		setIsMoving(true);
 
-	// Handle centering the satellite
-	const handleCenter = () => {
-		// Reset to default position
-		const updatedReadings = { ...readings };
+		if (direction === 'center') sendArmCommand(3);
+		else sendArmCommand(direction === 'clockwise' ? 1 : 2);
 
-		if (updatedReadings.lat) {
-			updatedReadings.lat = {
-				...updatedReadings.lat,
-				Value: 0,
-			};
-		}
-
-		if (updatedReadings.long) {
-			updatedReadings.long = {
-				...updatedReadings.long,
-				Value: 0,
-			};
-		}
-
-		// Update readings
-		setReadings(updatedReadings);
-		setLastUpdated(new Date());
+		setTimeout(() => {
+			setIsMoving(false);
+		}, 500);
 	};
 
 	return (
@@ -231,7 +214,7 @@ export function ImageGallery() {
 							<SatelliteControls
 								onMove={handleMove}
 								onRotate={handleRotate}
-								onCenter={handleCenter}
+								onCenter={handleRotate}
 								isMoving={isMoving}
 							/>
 						</div>

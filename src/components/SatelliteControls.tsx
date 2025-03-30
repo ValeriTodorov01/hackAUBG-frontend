@@ -7,8 +7,6 @@ import {
 	Crosshair,
 	ArrowRight,
 	ArrowDown,
-	RotateCcw,
-	RotateCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +14,7 @@ interface SatelliteControlsProps {
 	onMove: (direction: 'up' | 'down' | 'left' | 'right') => void;
 	onRotate: (direction: 'clockwise' | 'counterclockwise') => void;
 	isMoving: boolean;
-	onCenter: () => void;
+	onCenter: (direction: 'center') => void;
 }
 
 export function SatelliteControls({
@@ -83,7 +81,9 @@ export function SatelliteControls({
 							: 'hover:bg-blue-50 hover:text-blue-600'
 					} transition-all duration-200`}
 					disabled={isMoving}
-					onClick={() => handleButtonPress('center', onCenter)}
+					onClick={() =>
+						handleButtonPress('center', () => onCenter('center'))
+					}
 				>
 					<Crosshair className='h-7 w-7' />
 				</Button>
@@ -122,6 +122,9 @@ export function SatelliteControls({
 				</Button>
 				<div></div>
 			</div>
+			<div className='text-xs text-gray-400 mb-4'>
+				Use the arrows above to move the satellite
+			</div>
 
 			{/* Rotation Controls */}
 			<div className='flex justify-center space-x-6'>
@@ -139,8 +142,7 @@ export function SatelliteControls({
 						)
 					}
 				>
-					<RotateCcw className='h-5 w-5 mr-2' />
-					Rotate CCW
+					<ArrowLeft className='h-7 w-7' />
 				</Button>
 				<Button
 					variant='outline'
@@ -156,9 +158,11 @@ export function SatelliteControls({
 						)
 					}
 				>
-					<RotateCw className='h-5 w-5 mr-2' />
-					Rotate CW
+					<ArrowRight className='h-7 w-7' />
 				</Button>
+			</div>
+			<div className='mt-2 text-xs text-gray-400'>
+				Use the arrows to rotate arm
 			</div>
 		</div>
 	);

@@ -1,4 +1,4 @@
-import { type Reading, PROPERTY_MAP } from '@/lib/types';
+import { type Reading } from '@/lib/types';
 import { SatelliteData, SatelliteCommand } from './types';
 
 const mockSatelliteData: SatelliteData = {
@@ -146,56 +146,66 @@ export async function sendSatelliteCommand(
 	return { success: true };
 }
 
-const API_ENDPOINT =
-	'http://localhost:8080/services/ts/nst-one/gen/edm/api/entities/ReadingService.ts';
+// const API_ENDPOINT =
+// 	'http://localhost:8080/services/ts/nst-one/gen/edm/api/entities/ReadingService.ts';
 
 /**
  * Fetches the latest readings from the API
  * @returns Promise with the latest readings for each property
  */
 export async function fetchLatestReadings(): Promise<Record<string, Reading>> {
-	try {
-		const response = await fetch(API_ENDPOINT, {
-			headers: {
-				Authorization: 'Basic ' + btoa('admin:admin'),
-			},
-		});
+	// try {
+	// 	const response = await fetch(API_ENDPOINT, {
+	// 		headers: {
+	// 			Authorization: 'Basic ' + btoa('admin:admin'),
+	// 		},
+	// 	});
 
-		if (!response.ok) {
-			throw new Error(
-				`API request failed with status ${response.status}`
-			);
-		}
-		const data: Reading[] = await response.json();
+	// 	if (!response.ok) {
+	// 		throw new Error(
+	// 			`API request failed with status ${response.status}`
+	// 		);
+	// 	}
+	// 	const data: Reading[] = await response.json();
 
-		const latestReadings: Record<string, Reading> = {};
+	// 	const latestReadings: Record<string, Reading> = {};
 
-		const sortedData = [...data].sort((a, b) => b.Id - a.Id);
+	// 	const sortedData = [...data].sort((a, b) => b.Id - a.Id);
 
-		sortedData.forEach((reading) => {
-			const propertyName = PROPERTY_MAP[reading.Property];
+	// 	sortedData.forEach((reading) => {
+	// 		const propertyName = PROPERTY_MAP[reading.Property];
 
-			if (!propertyName) return;
+	// 		if (!propertyName) return;
 
-			if (
-				!latestReadings[propertyName] ||
-				new Date(reading.Timestamp) >
-					new Date(latestReadings[propertyName].Timestamp)
-			) {
-				latestReadings[propertyName] = reading;
-			}
-		});
+	// 		if (
+	// 			!latestReadings[propertyName] ||
+	// 			new Date(reading.Timestamp) >
+	// 				new Date(latestReadings[propertyName].Timestamp)
+	// 		) {
+	// 			latestReadings[propertyName] = reading;
+	// 		}
+	// 	});
 
-		return latestReadings;
-	} catch (error) {
-		console.error('Error fetching readings:', error);
-		return getMockReadings();
-	}
+	// 	return latestReadings;
+	// } catch (error) {
+	// 	console.error('Error fetching readings:', error);
+	return getMockReadings();
+	// }
 }
 
 export const sendCommand = async (dir: number) => {
 	try {
 		const response = await fetch(`http://192.168.84.192:7123?dir=${dir}`);
+		const text = await response.text();
+		console.log('ESP32 Response:', text);
+	} catch (error) {
+		console.error('Error sending request:', error);
+	}
+};
+
+export const sendArmCommand = async (arm: number) => {
+	try {
+		const response = await fetch(`http://192.168.84.192:7123?arm=${arm}`);
 		const text = await response.text();
 		console.log('ESP32 Response:', text);
 	} catch (error) {
