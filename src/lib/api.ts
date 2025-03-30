@@ -195,7 +195,7 @@ export async function fetchLatestReadings(): Promise<Record<string, Reading>> {
 
 export const sendCommand = async (dir: number) => {
 	try {
-		const response = await fetch(`http://192.168.1.100?dir=${dir}`);
+		const response = await fetch(`http://192.168.84.192:7123?dir=${dir}`);
 		const text = await response.text();
 		console.log('ESP32 Response:', text);
 	} catch (error) {
@@ -210,25 +210,25 @@ function getMockReadings(): Record<string, Reading> {
 		temperature: {
 			Id: 1,
 			Property: 1,
-			Value: 22 + Math.random() * 8,
+			Value: 20 + Math.random() * 2, // Temperature between 20-22°C
 			Timestamp: now,
 		},
 		humidity: {
 			Id: 2,
 			Property: 2,
-			Value: 45 + Math.random() * 30,
+			Value: 30 + Math.random() * 3, // Humidity between 30-70%
 			Timestamp: now,
 		},
 		lat: {
 			Id: 3,
 			Property: 3,
-			Value: 37.7749 + (Math.random() - 0.5) * 2,
+			Value: 43.0757 + (Math.random() - 0.5) * 0.1, // Small variation around Veliko Turnovo coordinates
 			Timestamp: now,
 		},
 		long: {
 			Id: 4,
 			Property: 4,
-			Value: -122.4194 + (Math.random() - 0.5) * 2,
+			Value: 25.6172 + (Math.random() - 0.5) * 0.1, // Small variation around Veliko Turnovo coordinates
 			Timestamp: now,
 		},
 	};

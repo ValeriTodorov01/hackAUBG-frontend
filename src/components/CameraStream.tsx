@@ -27,7 +27,7 @@ const CameraStream = () => {
 			) : (
 				<img
 					// src='http://localhost:81/stream'
-					src='http://192.168.107.1:81'
+					src='http://192.168.84.192:7123/stream'
 					alt='ESP32 Camera Stream'
 					onError={handleError}
 					style={{

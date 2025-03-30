@@ -47,6 +47,7 @@ export function ImageGallery() {
 	};
 
 	const getReadingValue = (property: string): number => {
+		// console.log(`Reading for ${property}:`, readings[property]);
 		if (!readings[property]) return 0;
 		return readings[property].Value;
 	};
